@@ -1,4 +1,4 @@
-# stupid-car
+# Arduino Line Following and Obstacle Avoidance Car
 
 基于 Arduino 的循迹与避障智能小车项目
 
