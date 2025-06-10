@@ -101,6 +101,28 @@ void loop() {
   bool LS = digitalRead(irSensorLeft);
   bool RS = digitalRead(irSensorRight);
 
+  // 超音波避障
+  long duration, distance;
+  digitalWrite(trigPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigPin, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigPin, LOW);
+  duration = pulseIn(echoPin, HIGH, 20000); // 最多等20ms
+  distance = duration * 0.034 / 2; // 計算距離（公分）
+
+  if (distance > 0 && distance < 15) { // 前方小於15cm有障礙物
+    stopMotor();
+    delay(500);
+    backward();
+    delay(400);
+    spinRight();
+    delay(400);
+    stopMotor();
+    delay(200);
+    return; // 本回合結束，避免繼續循跡
+  }
+
   // 偵測到黑線為 LOW、白色為 HIGH
   if (LS == LOW && RS == LOW) {
     stopMotor(); // 十字或交叉情況，先停下來
