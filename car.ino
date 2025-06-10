@@ -1,20 +1,20 @@
 // car.ino
 // 馬達控制腳位設定
 #include <Arduino.h>
-const int ENA = 7;
-const int IN1 = 6;
-const int IN2 = 5;
-const int IN3 = 4;
-const int IN4 = 3;
-const int ENB = 2;
+const int ENA = 3;   // PWM
+const int IN1 = 5;   // PWM
+const int IN2 = 6;   // PWM
+const int IN3 = 9;   // PWM
+const int IN4 = 10;  // PWM
+const int ENB = 11;  // PWM
 
 const int motorspeed = 130; // 可自行調整速度
 
 // 紅外線循跡感測器腳位設定
 const int irSensorLeft = 8;
-const int irSensorRight = 9;
-const int trigPin = 10;    // 超音波Trig
-const int echoPin = 11;   // 超音波Echo
+const int irSensorRight = 7;
+const int trigPin = 12;    // 超音波Trig
+const int echoPin = 13;   // 超音波Echo
 
 const int ledLeft = A4;
 const int ledRight = A5;
