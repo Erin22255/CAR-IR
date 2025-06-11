@@ -19,10 +19,6 @@ const int echoPin = 13;   // 超音波Echo
 const int ledLeft = A4;
 const int ledRight = A5;
 
-// 新增紅外線避障感測器腳位
-const int avoidLeft = A1;  // 左避障
-const int avoidRight = A3; // 右避障
-
 void forward() {
   analogWrite(ENA, motorspeed);
   digitalWrite(IN1, HIGH);
@@ -102,62 +98,51 @@ void setup() {
 }
 
 void loop() {
-  // 1. 讀取所有感測器
-  bool LS = digitalRead(irSensorLeft);   // 循跡左
-  bool RS = digitalRead(irSensorRight);  // 循跡右
-  bool AL = digitalRead(avoidLeft);      // 左避障
-  bool AR = digitalRead(avoidRight);     // 右避障
+  bool LS = digitalRead(irSensorLeft);
+  bool RS = digitalRead(irSensorRight);
 
-  // 超音波距離
+  // 1. 先做循跡判斷（修正：偵測到黑線為 HIGH，白色為 LOW）
+  if (LS == HIGH && RS == HIGH) {
+    stopMotor(); // 十字或交叉情況，先停下來
+    delay(50);
+    return;
+  }
+  else if (LS == LOW && RS == LOW) {
+    forward();   // 中間在線上，正常前進
+    delay(10);
+    // 不 return，繼續檢查避障
+  }
+  else if (LS == HIGH && RS == LOW) {
+    turnRight(); // 左偏出線，往右修正
+    delay(10);
+    return;
+  }
+  else if (LS == LOW && RS == HIGH) {
+    turnLeft();  // 右偏出線，往左修正
+    delay(10);
+    return;
+  }
+
+  // 2. 再做超音波避障
   long duration, distance;
   digitalWrite(trigPin, LOW);
   delayMicroseconds(2);
   digitalWrite(trigPin, HIGH);
   delayMicroseconds(10);
   digitalWrite(trigPin, LOW);
-  duration = pulseIn(echoPin, HIGH, 20000);
-  distance = duration * 0.034 / 2;
+  duration = pulseIn(echoPin, HIGH, 20000); // 最多等20ms
+  distance = duration * 0.034 / 2; // 計算距離（公分）
 
-  // 2. 障礙判斷
-  if (distance > 0 && distance < 15 || AL == LOW || AR == LOW) {
+  if (distance > 0 && distance < 15) { // 前方小於15cm有障礙物
     stopMotor();
-    delay(300);
-    backward();
-    delay(300);
-    if (AL == LOW) {
-      turnRight();
-      delay(600);
-    } else if (AR == LOW) {
-      turnLeft();
-      delay(600);
-    } else {
-      if (random(2) == 0) {
-        turnLeft();
-      } else {
-        turnRight();
-      }
-      delay(800);
-    }
-    forward();
     delay(500);
+    backward();
+    delay(200);
+    spinRight();
+    delay(300);
     stopMotor();
-    delay(100);
+    delay(200);
     return;
   }
-
-  // 3. 循跡判斷
-  if (LS == LOW && RS == LOW) {
-    stopMotor(); // 十字路口，停下來
-    delay(500);
-  } else if (LS == HIGH && RS == LOW) {
-    turnLeft(); // 左轉校正
-    delay(100);
-  } else if (LS == LOW && RS == HIGH) {
-    turnRight(); // 右轉校正
-    delay(100);
-  } else if (LS == HIGH && RS == HIGH) {
-    forward(); // 前進
-    delay(100);
-  }
-  delay(50); // 延時50ms後繼續循環
+  delay(50); // 短暫延遲穩定偵測
 }
